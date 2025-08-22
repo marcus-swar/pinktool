@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mobile X‑Store • Team Tracker</title>
+  <style>
+    :root {
+      /* Lighter Swarovski‑inspired pastel rose palette */
+      --bg: #fffafb; /* page background */
+      --card: #ffffff; /* card panels */
+      --subtle: #6b7280; /* muted text */
+      --text: #182230; /* primary text */
+      --accent: #ff9ac8; /* light rose */
+      --accent-2: #f0a3d1; /* soft amethyst/rose blend */
+      --good: #22c55e;
+      --warn: #f59e0b;
+      --bad: #ef476f;
+      --muted: #fde7f1; /* light UI surfaces */
+      --ring: #f7cfe1; /* borders */
+      --shadow: 0 8px 28px rgba(31, 41, 55, .08), 0 2px 10px rgba(31, 41, 55, .05);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 800px at 10% -10%, rgba(255,154,200,.18), transparent),
+        radial-gradient(1200px 800px at 110% 10%, rgba(240,163,209,.15), transparent),
+        var(--bg);
+    }
+    header { position: sticky; top: 0; z-index: 20; display:flex; align-items:center; gap:12px; justify-content:space-between; padding:16px 20px; background: rgba(255,255,255,.75); backdrop-filter: blur(10px); border-bottom: 1px solid var(--ring); }
+    .brand { display:flex; gap:12px; align-items:center; }
+    .logo { width: 28px; height: 28px; border-radius: 8px; background: conic-gradient(from 30deg, var(--accent), var(--accent-2), var(--accent)); box-shadow: inset 0 0 14px rgba(255,255,255,.65); }
+    .title { font-weight: 700; letter-spacing: .3px; }
+    .spacer { flex: 1; }
+    .toolbar { display:flex; gap:10px; align-items:center; }
+    .btn, button, .iconbtn { cursor:pointer; border:0; border-radius: 12px; padding: 10px 14px; background: var(--muted); color: var(--text); box-shadow: var(--shadow); }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:#2a1624; font-weight:700; }
+    .btn.secondary { background: #ffeaf3; }
+    .iconbtn { display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; padding:0; border-radius: 12px; background:#ffeaf3; }
+    .iconbtn svg { width:22px; height:22px; fill: none; stroke: #a44b74; stroke-width: 1.6px; }
+    main { max-width: 1200px; margin: 22px auto; padding: 0 16px 40px; }
+    .grid { display:grid; gap:16px; grid-template-columns: repeat(12, minmax(0,1fr)); }
+    .card { grid-column: span 12; background: linear-gradient(180deg, var(--card), #fff2f7); border: 1px solid var(--ring); border-radius: 16px; box-shadow: var(--shadow); }
+    .card .hd { display:flex; align-items:center; justify-content:space-between; padding: 14px 16px; border-bottom: 1px solid var(--ring); }
+    .card .bd { padding: 16px; }
+    @media (min-width: 980px) { .col-4 { grid-column: span 4; } .col-6 { grid-column: span 6; } .col-8 { grid-column: span 8; } .col-3 { grid-column: span 3; } }
+
+    .leader { display:flex; gap:16px; align-items:center; padding: 12px 14px; border: 1px dashed var(--ring); border-radius: 14px; background: rgba(255,154,200,.10); }
+    .chip { display:inline-flex; gap:8px; align-items:center; padding: 6px 10px; border-radius: 999px; background: #fff4f9; border: 1px solid var(--ring); color: var(--subtle); }
+    .muted { color: var(--subtle); }
+    .stat { display:flex; flex-direction:column; gap:6px; }
+    .stat .big { font-size: 28px; font-weight: 800; }
+    .progress { width:100%; height: 12px; background: #ffe9f3; border-radius: 999px; overflow:hidden; border: 1px solid var(--ring); }
+    .progress > div { height:100%; background: linear-gradient(90deg, var(--good), var(--accent)); }
+    .kpis { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
+    .kpi { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--ring); background: #fff; }
+    .row { display:flex; flex-wrap: wrap; gap: 10px; }
+    label { display:block; font-size: 13px; color: var(--subtle); margin-bottom: 6px; }
+    input, select, details, summary { font: inherit; }
+    input[type="text"], input[type="number"], input[type="password"], input[type="month"], select, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--ring); background: #fff; color: var(--text); }
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid var(--ring); text-align:left; }
+    th { color: var(--subtle); font-weight: 600; }
+    tbody tr:hover { background: rgba(0,0,0,0.03); }
+    .tag { padding: 2px 8px; border-radius: 999px; border: 1px solid var(--ring); color: var(--subtle); font-size: 12px; }
+    .flex { display:flex; align-items:center; gap:10px; }
+    .right { margin-left: auto; }
+    .hidden { display:none !important; }
+    .teamcard { padding: 12px; border-radius: 14px; border: 1px solid var(--ring); background: #fff; display:flex; gap:12px; align-items:center; }
+    .teamring { width: 40px; height: 40px; border-radius: 50%; background: conic-gradient(var(--accent), var(--accent-2)); display:inline-grid; place-items:center; }
+    .teamring span { display:block; width: 30px; height: 30px; border-radius: 50%; background: #fff; border: 1px solid var(--ring); }
+    .mini { font-size: 12px; color: var(--subtle); }
+    .monos { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .sep { height: 1px; background: var(--ring); margin: 10px 0; }
+    .pillbtn { padding: 6px 10px; border-radius: 999px; background: #fff0f6; border: 1px solid var(--ring); color: var(--text); cursor: pointer; }
+    .list { display:flex; flex-wrap:wrap; gap:8px; }
+    .member { padding: 6px 10px; border-radius: 999px; background: #fff5fa; border: 1px solid var(--ring); }
+    .danger { background: rgba(239,71,111,.10); border-color: #ef476f; }
+    .good { background: rgba(34,197,94,.12); border-color: #22c55e; }
+    .note { font-size: 12px; color: var(--subtle); }
+    .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: #ffffff; border: 1px solid var(--ring); padding: 10px 14px; border-radius: 12px; box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: opacity .3s; }
+    .toast.show { opacity: 1; }
+    .tabbar { display:flex; gap:6px; flex-wrap: wrap; }
+    .tabbar .pillbtn.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+    .hr { height:1px; background: var(--ring); margin: 10px 0; }
+    .link { color: #a44b74; cursor: pointer; text-decoration: underline dotted; }
+    /* Modal */
+    .modal { position: fixed; inset: 0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,.25); }
+    .modal.show { display:flex; }
+    .modal .panel { width: 95%; max-width: 420px; background: #ffffff; border:1px solid var(--ring); border-radius: 16px; box-shadow: var(--shadow); padding: 16px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div class="title">Mobile X‑Store • Team Tracker</div>
+      <span class="chip" id="monthChip">Month: —</span>
+    </div>
+    <div class="toolbar">
+      <input type="month" id="monthPicker" />
+      <button class="btn secondary" id="newTxnBtn">Home</button>
+      <button class="iconbtn" id="configBtn" title="Configure">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15.5a7.5 7.5 0 0 0 .1-2l2-1.4-2-3.6-2.3.5a7.6 7.6 0 0 0-1.7-1l-.3-2.3H11l-.3 2.3a7.6 7.6 0 0 0-1.7 1l-2.3-.5-2 3.6 2 1.4a7.5 7.5 0 0 0 .1 2L2.8 17l2.1 3.5 2.3-.6c.5.4 1.1.7 1.7 1l.3 2.4h4l.3-2.4c.6-.3 1.2-.6 1.7-1l2.3.6 2.1-3.5-2.4-1.5Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section id="dashboard">
+      <div class="grid">
+        <div class="card col-8">
+          <div class="hd"><div>Team Leaderboard</div><div class="muted" id="leaderboardMeta">—</div></div>
+          <div class="bd" id="leaderboard"></div>
+        </div>
+        <div class="card col-4">
+          <div class="hd"><div>Current Leader</div></div>
+          <div class="bd" id="currentLeader">
+            <div class="leader">
+              <div class="teamring"><span></span></div>
+              <div>
+                <div class="muted">Top Team this month</div>
+                <div class="stat"><div class="big" id="leaderName">—</div>
+                <div class="mini" id="leaderDetail">—</div></div>
+              </div>
+            </div>
+            <div class="hr"></div>
+            <div class="kpis">
+              <div class="kpi"><div class="mini">Workplace Mobile %</div><div class="big" id="orgPct">—</div></div>
+              <div class="kpi"><div class="mini">Mobile Txns</div><div class="big" id="orgMob">—</div></div>
+              <div class="kpi"><div class="mini">Total Txns</div><div class="big" id="orgTot">—</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card col-6">
+          <div class="hd"><div>Log a Transaction</div></div>
+          <div class="bd">
+            <form id="txnForm" class="row" onsubmit="return false;">
+              <div style="flex:1 1 220px; min-width:220px;">
+                <label for="pinInput">4‑digit PIN</label>
+                <input id="pinInput" type="password" inputmode="numeric" pattern="\d{4}" maxlength="4" placeholder="••••" />
+                <div class="mini">Each staff sets their PIN in Config › Settings</div>
+              </div>
+              <div style="flex:1 1 160px; min-width:160px;">
+                <label>Mobile X‑Store?</label>
+                <select id="isMobileSelect">
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+              <div id="reasonWrap" style="flex:1 1 220px; min-width:220px;">
+                <label for="reasonSelect">Reason (if not)</label>
+                <select id="reasonSelect"></select>
+              </div>
+              <div class="right">
+                <button class="btn primary" id="saveTxnBtn">Save</button>
+              </div>
+            </form>
+            <div class="note">Each entry is timestamped and saved to this browser (localStorage). Use Export/Import in Config to back up or merge data.</div>
+          </div>
+        </div>
+
+        <div class="card col-6">
+          <div class="hd"><div>Reasons (this month)</div></div>
+          <div class="bd">
+            <table>
+              <thead><tr><th>Reason</th><th>Count</th></tr></thead>
+              <tbody id="reasonTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIG -->
+    <section id="config" class="hidden">
+      <div class="grid">
+        <div class="card col-12">
+          <div class="hd">
+            <div>Configuration</div>
+            <div class="tabbar">
+              <button class="pillbtn active" data-tab="teamsTab">Teams</button>
+              <button class="pillbtn" data-tab="dataTab">Data</button>
+              <button class="pillbtn" data-tab="settingsTab">Settings</button>
+            </div>
+          </div>
+          <div class="bd">
+            <!-- Tabs content -->
+            <div id="teamsTab">
+              <div class="row" style="gap:16px; align-items: flex-end;">
+                <div>
+                  <label>Configure month</label>
+                  <input type="month" id="configMonth" />
+                </div>
+                <div>
+                  <label>Team size</label>
+                  <input type="number" id="teamSize" min="2" max="10" step="1" value="3" />
+                </div>
+                <button class="btn secondary" id="randomiseTeamsBtn">Create random teams</button>
+                <button class="btn secondary" id="addTeamBtn">Add team</button>
+                <span class="spacer"></span>
+                <div class="note">Tip: Teams are saved per-month. Randomise to quickly create 3‑person teams from your staff list.</div>
+              </div>
+              <div class="hr"></div>
+              <div id="teamsEditor" class="grid" style="grid-template-columns: repeat(12, minmax(0,1fr)); gap: 16px;"></div>
+            </div>
+
+            <div id="dataTab" class="hidden">
+              <div class="row" style="gap:16px; align-items: flex-end;">
+                <div>
+                  <label>Month</label>
+                  <input type="month" id="dataMonth" />
+                </div>
+                <button class="btn secondary" id="refreshDataBtn">Refresh</button>
+                <div class="spacer"></div>
+                <button class="btn secondary" id="exportBtn">Export JSON</button>
+                <label class="pillbtn" for="importFile" style="cursor:pointer;">Import JSON</label>
+                <input id="importFile" type="file" accept="application/json" class="hidden" />
+                <button class="btn danger" id="clearBtn">Clear ALL data</button>
+              </div>
+              <div class="hr"></div>
+              <div class="kpis">
+                <div class="kpi"><div class="mini">Overall Mobile % (All Months)</div><div class="big" id="overallPct">—</div></div>
+                <div class="kpi"><div class="mini">Mobile Txns</div><div class="big" id="overallMob">—</div></div>
+                <div class="kpi"><div class="mini">Total Txns</div><div class="big" id="overallTot">—</div></div>
+              </div>
+              <div class="hr"></div>
+              <div class="grid" style="grid-template-columns: repeat(12, minmax(0,1fr)); gap: 16px;">
+                <div class="card col-6">
+                  <div class="hd"><div>Per‑staff usage (this month)</div></div>
+                  <div class="bd" style="max-height: 360px; overflow:auto;">
+                    <table>
+                      <thead><tr><th>Staff</th><th>Mobile</th><th>Total</th><th>%</th></tr></thead>
+                      <tbody id="staffPctTable"></tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="card col-6">
+                  <div class="hd"><div>Transactions (this month)</div></div>
+                  <div class="bd" style="max-height: 360px; overflow:auto; border-radius: 12px;">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>When</th><th>Staff</th><th>Team</th><th>Mobile?</th><th>Reason</th><th></th>
+                        </tr>
+                      </thead>
+                      <tbody id="txnTable"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="settingsTab" class="hidden">
+              <div class="row" style="gap:16px; align-items: flex-end;">
+                <div style="min-width: 280px;">
+                  <label>Add staff</label>
+                  <div class="row"><input id="newStaffInput" type="text" placeholder="Full name" />
+                    <button class="btn secondary" id="addStaffBtn">Add</button></div>
+                </div>
+                <div class="note">Staff list is global across months. Set a unique 4‑digit PIN for each staffer.</div>
+              </div>
+              <div class="hr"></div>
+              <div id="staffAdmin"></div>
+              <div class="sep"></div>
+              <div style="max-width:500px;">
+                <label>Not‑mobile reasons</label>
+                <div id="reasonsList" class="list"></div>
+                <div class="row" style="margin-top:8px;">
+                  <input id="newReasonInput" type="text" placeholder="Add a reason" />
+                  <button class="btn secondary" id="addReasonBtn">Add</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Manager auth modal -->
+  <div class="modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="panel">
+      <div class="hd" id="authTitle">Manager Access</div>
+      <div class="bd">
+        <div class="row">
+          <div style="flex:1;">
+            <label for="mgrPass">Enter password</label>
+            <input id="mgrPass" type="password" placeholder="••••••••" />
+          </div>
+          <button class="btn primary" id="authSubmit">Unlock</button>
+        </div>
+        <div class="note" style="margin-top:8px;">Required for Config/Data. Default: <span class="monos"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Saved ✓</div>
+
+  <script>
+  /************ Persistence ************/
+  const STORAGE_KEY = 'xstoreData.v2';
+  const DEFAULTS = {
+    staff: [ // will migrate to objects with pin
+      'Marcus Csikos', 'Alice Nguyen', 'Ben Park', 'Chloe Zhang', 'Daniel Kim', 'Ella Patel', 'Frankie Li', 'Grace Lee', 'Hugo Chen'
+    ],
+    reasons: [ 'Already in use', 'Battery Flat', 'iPad error', 'Oops forgot this time!' ],
+    months: {},
+    currentMonth: monthKey(new Date())
+  };
+
+  const NAME_BANK = [
+    'Idyllia Idols','Sublima Soldiers','Millenia Mavens','Matrix Mavericks','Gema Gems','Constella Crew','Dextera Dynamos','Mesmera Mob','Harmonia Heroes','Lucent Legion','Matrix Monarchs','Millenia Monarchs','Gema Guardians'
+  ];
+
+  const MANAGER_PASSWORD = 'masteroflight';
+
+  let state = load();
+  ensureMonth(state.currentMonth);
+
+  function monthKey(d){ const y=d.getFullYear(); const m=(d.getMonth()+1).toString().padStart(2,'0'); return `${y}-${m}`; }
+
+  function normalizeMembersStructure(data){
+    // Ensure all team member entries are stored as plain strings (names)
+    if(!data || !data.months) return;
+    for(const mKey of Object.keys(data.months)){
+      const m = data.months[mKey];
+      if(!m || !Array.isArray(m.teams)) continue;
+      m.teams.forEach(t => {
+        if(!t || !Array.isArray(t.members)) { t.members = []; return; }
+        t.members = t.members.map(mem => {
+          if(typeof mem === 'string') return mem; // already a name
+          if(mem && typeof mem === 'object') return mem.name || String(mem); // migrate old {name:...}
+          return String(mem);
+        });
+      });
+    }
+  }
+
+  function load(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('xstoreData.v1');
+      const data = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULTS));
+      // base structure
+      data.staff ||= DEFAULTS.staff;
+      data.reasons ||= DEFAULTS.reasons;
+      data.months ||= {};
+      data.currentMonth ||= monthKey(new Date());
+      // migrate staff to objects with pin
+      if(Array.isArray(data.staff)){
+        data.staff = data.staff.map(s => (typeof s === 'string') ? ({ name: s, pin: '' }) : s);
+      } else if(data.staff && data.staff.length && typeof data.staff[0] === 'string') {
+        data.staff = data.staff.map(s => ({ name: s, pin: '' }));
+      }
+      // migrate any old pins dictionary
+      if(data.pins && typeof data.pins === 'object'){
+        for(const [name,pin] of Object.entries(data.pins)){
+          const rec = data.staff.find(s=>s.name===name);
+          if(rec && /^\d{4}$/.test(pin)) rec.pin = pin;
+        }
+        delete data.pins;
+      }
+      // *** CRITICAL FIX *** Normalize team members to strings (prevents "[object Object]")
+      normalizeMembersStructure(data);
+
+      save(data);
+      return data;
+    } catch(e){ console.warn('Failed to load, resetting', e); return JSON.parse(JSON.stringify(DEFAULTS)); }
+  }
+  function save(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj || state)); }
+  function ensureMonth(mKey){ if(!state.months[mKey]){ state.months[mKey] = { teams: [], transactions: [] }; save(); } }
+  function toast(msg='Saved ✓'){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=> el.classList.remove('show'), 1200); }
+
+  /************ Helpers ************/
+  function uid(){ return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+  function fmtPct(n){ if(!isFinite(n)) return '—'; return (Math.round(n*10)/10).toFixed(1) + '%'; }
+  function fmtDate(ts){ const d = new Date(ts); return d.toLocaleString(); }
+  function getTeams(mKey){ return state.months[mKey]?.teams || []; }
+  function getTxns(mKey){ return state.months[mKey]?.transactions || []; }
+  function teamOfStaff(mKey, staffName){ const teams=getTeams(mKey); for(const t of teams){ if(t.members.includes(staffName)) return t.name; } return 'Unassigned'; }
+  function escapeHtml(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
+  function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
+
+  function findStaffByPIN(pin){ return state.staff.find(s => s.pin && s.pin === pin); }
+  function staffNames(){ return state.staff.map(s=>s.name); }
+
+  /************ Stats ************/
+  function computeStats(mKey){
+    const teams = getTeams(mKey);
+    const txns = getTxns(mKey);
+    const teamStats = teams.map(t => ({ name: t.name, members: t.members.slice(), mobile: 0, total: 0 }));
+    const index = new Map(teamStats.map((t,i)=>[t.name,i]));
+
+    for(const x of txns){
+      const team = teamOfStaff(mKey, x.staff);
+      if(index.has(team)){
+        const t = teamStats[index.get(team)];
+        t.total += 1; if(x.isMobile) t.mobile += 1;
+      }
+    }
+    for(const t of teamStats){ t.pct = t.total ? (100 * t.mobile / t.total) : 0; }
+    const leader = teamStats.filter(t => t.total > 0).sort((a,b)=> b.pct - a.pct || b.mobile - a.mobile)[0] || null;
+
+    const org = txns.reduce((a,x)=>{ a.total++; if(x.isMobile) a.mobile++; return a; }, {mobile:0,total:0});
+    org.pct = org.total ? 100*org.mobile/org.total : 0;
+
+    const reasons = {}; for(const r of state.reasons) reasons[r]=0; for(const x of txns){ if(!x.isMobile && x.reason){ reasons[x.reason]=(reasons[x.reason]||0)+1; } }
+
+    // per-staff
+    const staffStats = state.staff.map(s => ({ name: s.name, mobile:0, total:0 }));
+    const sIndex = new Map(staffStats.map((s,i)=>[s.name,i]));
+    for(const x of txns){ if(sIndex.has(x.staff)){ const s=staffStats[sIndex.get(x.staff)]; s.total++; if(x.isMobile) s.mobile++; } }
+    staffStats.forEach(s => s.pct = s.total ? 100*s.mobile/s.total : 0);
+
+    return { teamStats, leader, org, reasons, staffStats };
+  }
+
+  /************ Rendering: Dashboard ************/
+  function renderDashboard(){
+    const mKey = state.currentMonth;
+    const { teamStats, leader, org, reasons } = computeStats(mKey);
+
+    document.getElementById('monthChip').textContent = `Month: ${mKey}`;
+    document.getElementById('leaderboardMeta').textContent = `${teamStats.length} teams • ${getTxns(mKey).length} transactions`;
+
+    const lb = document.getElementById('leaderboard'); lb.innerHTML='';
+    if(teamStats.length === 0){
+      lb.innerHTML = '<div class="muted">No teams yet. Open <span class="link" id="openConfigLink">Config</span> to set up this month.</div>';
+      setTimeout(()=>{ const link=document.getElementById('openConfigLink'); link && link.addEventListener('click', ()=> requireManager(()=> switchSection('config'))); },0);
+    } else {
+      for(const t of teamStats.sort((a,b)=> b.pct - a.pct)){
+        const card = document.createElement('div'); card.className='teamcard';
+        card.innerHTML = `
+          <div class="teamring"><span></span></div>
+          <div style="flex:1;">
+            <div class="flex"><strong>${escapeHtml(t.name)}</strong>
+              <span class="tag">${t.mobile}/${t.total} mobile</span>
+              <span class="tag">${t.members.length} members</span>
+            </div>
+            <div class="progress" style="margin-top:8px;"><div style="width:${t.pct.toFixed(1)}%"></div></div>
+            <div class="mini">Mobile usage: <strong>${fmtPct(t.pct)}</strong></div>
+          </div>`;
+        lb.appendChild(card);
+      }
+    }
+
+    document.getElementById('leaderName').textContent = leader ? leader.name : '—';
+    document.getElementById('leaderDetail').textContent = leader ? `${fmtPct(leader.pct)} • ${leader.mobile}/${leader.total} mobile` : 'No transactions yet';
+    document.getElementById('orgPct').textContent = fmtPct(org.pct);
+    document.getElementById('orgMob').textContent = org.mobile;
+    document.getElementById('orgTot').textContent = org.total;
+
+    // Reasons
+    const rt = document.getElementById('reasonTable'); rt.innerHTML='';
+    const entries = Object.entries(reasons);
+    if(entries.every(([_,v])=> v===0)) rt.innerHTML = `<tr><td colspan="2" class="muted">No non‑mobile reasons logged yet.</td></tr>`;
+    else for(const [reason, count] of entries){ const tr=document.createElement('tr'); tr.innerHTML=`<td>${escapeHtml(reason)}</td><td>${count}</td>`; rt.appendChild(tr); }
+
+    // Fill reasons for form
+    fillReasonsSelect();
+    toggleReason();
+  }
+
+  function fillReasonsSelect(){ const sel=document.getElementById('reasonSelect'); sel.innerHTML=''; for(const r of state.reasons){ const o=document.createElement('option'); o.value=r; o.textContent=r; sel.appendChild(o);} }
+  function toggleReason(){ const wrap=document.getElementById('reasonWrap'); wrap.style.display = (document.getElementById('isMobileSelect').value === 'no') ? 'block' : 'none'; }
+
+  /************ Rendering: Config ************/
+  function renderConfig(){
+    const mKey = document.getElementById('configMonth').value || state.currentMonth; ensureMonth(mKey);
+    renderTeamsEditor(mKey); renderSettings(); renderDataTab();
+  }
+
+  function renderTeamsEditor(mKey){
+    const container = document.getElementById('teamsEditor'); container.innerHTML='';
+    const teams = getTeams(mKey);
+    if(teams.length === 0){ const empty=document.createElement('div'); empty.className='muted'; empty.textContent='No teams yet. Use “Create random teams” above.'; container.appendChild(empty); return; }
+
+    teams.forEach((t, idx)=>{
+      const box = document.createElement('div'); box.className='card col-4';
+      box.innerHTML = `
+        <div class="hd">
+          <input value="${escapeAttr(t.name)}" data-index="${idx}" class="teamNameInput" />
+          <button class="iconbtn" title="Delete team" data-delteam="${idx}">
+            <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7v12m6-12v12M6 7l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14M9 7l1-3h4l1 3"/></svg>
+          </button>
+        </div>
+        <div class="bd">
+          <div class="list" id="members-${idx}"></div>
+          <div class="row" style="margin-top:8px;">
+            <select data-addto="${idx}"></select>
+            <button class="btn secondary" data-addbtn="${idx}">Add member</button>
+          </div>
+        </div>`;
+      container.appendChild(box);
+
+      // members
+      const memWrap = box.querySelector(`#members-${idx}`);
+      t.members.forEach(m => { const chip=document.createElement('span'); chip.className='member'; chip.innerHTML = `${escapeHtml(m)} <span class="link" data-rem="${idx}" data-name="${escapeAttr(m)}">✕</span>`; memWrap.appendChild(chip); });
+
+      // add-select
+      const sel = box.querySelector(`select[data-addto="${idx}"]`); sel.innerHTML = '<option value="">— Select staff —</option>';
+      for(const s of staffNames()){ const o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o);}    
+    });
+  }
+
+  function renderSettings(){
+    // Staff admin with PINs
+    const root = document.getElementById('staffAdmin');
+    root.innerHTML = '';
+    const table = document.createElement('table');
+    table.innerHTML = `<thead><tr><th>Name</th><th>PIN</th><th></th></tr></thead><tbody></tbody>`;
+    const tbody = table.querySelector('tbody');
+    state.staff.forEach((s, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" data-staff-name="${i}" value="${escapeAttr(s.name)}"/></td>
+        <td><input type="password" inputmode="numeric" pattern="\d{4}" maxlength="4" data-staff-pin="${i}" value="${escapeAttr(s.pin||'')}" placeholder="Set 4‑digit"/></td>
+        <td><span class="link" data-delstaff="${i}">Delete</span></td>`;
+      tbody.appendChild(tr);
+    });
+    root.appendChild(table);
+
+    // Reasons
+    const rl = document.getElementById('reasonsList'); rl.innerHTML = '';
+    for(const r of state.reasons){ const chip=document.createElement('span'); chip.className='member'; chip.innerHTML = `${escapeHtml(r)} <span class="link" data-delreason="${escapeAttr(r)}">✕</span>`; rl.appendChild(chip);}  
+  }
+
+  function renderDataTab(){
+    const mKey = document.getElementById('dataMonth').value || state.currentMonth; ensureMonth(mKey);
+    // Overall KPIs
+    const all = Object.values(state.months).flatMap(m => m.transactions);
+    const tot = all.length; const mob = all.filter(x=>x.isMobile).length; const pct = tot ? (100*mob/tot) : 0;
+    document.getElementById('overallPct').textContent = fmtPct(pct);
+    document.getElementById('overallMob').textContent = mob; document.getElementById('overallTot').textContent = tot;
+
+    // Txn table (month)
+    const tbody = document.getElementById('txnTable'); tbody.innerHTML='';
+    getTxns(mKey).slice().sort((a,b)=> b.ts - a.ts).forEach(x => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(fmtDate(x.ts))}</td>
+        <td>${escapeHtml(x.staff)}</td>
+        <td>${escapeHtml(teamOfStaff(mKey, x.staff))}</td>
+        <td>
+          <select data-edit-mobile="${x.id}"><option value="yes" ${x.isMobile?'selected':''}>Yes</option><option value="no" ${!x.isMobile?'selected':''}>No</option></select>
+        </td>
+        <td>
+          <select data-edit-reason="${x.id}" ${x.isMobile? 'disabled' : ''}>${state.reasons.map(r => `<option ${x.reason===r?'selected':''}>${escapeHtml(r)}</option>`).join('')}</select>
+        </td>
+        <td><span class="link" data-del-txn="${x.id}">Delete</span></td>`;
+      tbody.appendChild(tr);
+    });
+
+    // Per-staff table
+    const sbody = document.getElementById('staffPctTable'); sbody.innerHTML='';
+    const { staffStats } = computeStats(mKey);
+    staffStats.sort((a,b)=> b.pct - a.pct || b.mobile - a.mobile).forEach(s => {
+      const tr = document.createElement('tr'); tr.innerHTML = `<td>${escapeHtml(s.name)}</td><td>${s.mobile}</td><td>${s.total}</td><td>${fmtPct(s.pct)}</td>`; sbody.appendChild(tr);
+    });
+  }
+
+  /************ Actions ************/
+  // Month switching
+  const monthPicker = document.getElementById('monthPicker'); monthPicker.value = state.currentMonth;
+  monthPicker.addEventListener('change', ()=>{ state.currentMonth = monthPicker.value; ensureMonth(state.currentMonth); save(); renderDashboard(); });
+
+  // Log form interactions
+  document.getElementById('isMobileSelect').addEventListener('change', toggleReason);
+  document.getElementById('saveTxnBtn').addEventListener('click', ()=>{
+    const pin = (document.getElementById('pinInput').value || '').trim();
+    if(!/^\d{4}$/.test(pin)) return alert('Enter your 4‑digit PIN.');
+    const staffObj = findStaffByPIN(pin);
+    if(!staffObj) return alert('PIN not found. Please set your PIN in Config > Settings.');
+
+    const isMobile = document.getElementById('isMobileSelect').value === 'yes';
+    const reason = isMobile ? null : document.getElementById('reasonSelect').value || null;
+    const mKey = state.currentMonth; ensureMonth(mKey);
+    state.months[mKey].transactions.push({ id: uid(), ts: Date.now(), staff: staffObj.name, isMobile, reason });
+    save(); renderDashboard(); toast('Transaction logged');
+    document.getElementById('pinInput').value='';
+  });
+
+  // Config open/close with manager auth
+  document.getElementById('configBtn').addEventListener('click', ()=> requireManager(()=> switchSection('config')));
+  document.getElementById('newTxnBtn').addEventListener('click', ()=>{ switchSection('dashboard'); document.getElementById('pinInput').focus(); });
+
+  function switchSection(which){
+    document.getElementById('dashboard').classList.toggle('hidden', which !== 'dashboard');
+    document.getElementById('config').classList.toggle('hidden', which !== 'config');
+    if(which==='config'){
+      setActiveTab('teamsTab');
+      document.getElementById('configMonth').value = state.currentMonth;
+      document.getElementById('dataMonth').value = state.currentMonth;
+      renderConfig();
+    }
+  }
+
+  // Auth helpers
+  function requireManager(onSuccess){
+    if(sessionStorage.getItem('mgrAuth')==='1') return onSuccess();
+    const modal = document.getElementById('authModal');
+    modal.classList.add('show');
+    const input = document.getElementById('mgrPass'); input.value=''; input.focus();
+    const submit = () => {
+      if(input.value===MANAGER_PASSWORD){ sessionStorage.setItem('mgrAuth','1'); modal.classList.remove('show'); onSuccess(); }
+      else alert('Incorrect password');
+    };
+    document.getElementById('authSubmit').onclick = submit;
+    input.onkeydown = (e)=>{ if(e.key==='Enter') submit(); };
+  }
+
+  // Tabs (guard switching to protected tabs too)
+  document.querySelectorAll('.tabbar .pillbtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = btn.dataset.tab;
+      if(tabId!=='teamsTab') return requireManager(()=> setActiveTab(tabId));
+      setActiveTab(tabId);
+    });
+  });
+  function setActiveTab(tabId){ ['teamsTab','dataTab','settingsTab'].forEach(id => { document.getElementById(id).classList.toggle('hidden', id!==tabId); }); document.querySelectorAll('.tabbar .pillbtn').forEach(b=> b.classList.toggle('active', b.dataset.tab===tabId)); }
+
+  // Teams tab controls
+  document.getElementById('randomiseTeamsBtn').addEventListener('click', ()=>{
+    const mKey = document.getElementById('configMonth').value || state.currentMonth;
+    const size = Math.max(2, Math.min(10, parseInt(document.getElementById('teamSize').value||'3',10)));
+    const names = NAME_BANK.slice(); const pool = staffNames().slice(); shuffle(pool);
+    const teams = []; let idx=0, t=0;
+    while(idx < pool.length){ const chunk = pool.slice(idx, idx+size); const name = names.shift() || `Team ${t+1}`; teams.push({ name, members: chunk }); idx += size; t++; }
+    state.months[mKey] = state.months[mKey] || { teams: [], transactions: [] }; state.months[mKey].teams = teams; save(); renderTeamsEditor(mKey); toast('Teams created');
+  });
+  document.getElementById('addTeamBtn').addEventListener('click', ()=>{ const mKey = document.getElementById('configMonth').value || state.currentMonth; const seq = getTeams(mKey).length + 1; const name = NAME_BANK[seq % NAME_BANK.length] || `Team ${seq}`; state.months[mKey].teams.push({ name, members: [] }); save(); renderTeamsEditor(mKey); });
+
+  // Delegate team editor interactions
+  document.getElementById('teamsEditor').addEventListener('click', (e)=>{
+    const delTeam = e.target.closest('[data-delteam]'); const rem = e.target.closest('[data-rem]'); const addBtn = e.target.closest('[data-addbtn]');
+    const mKey = document.getElementById('configMonth').value || state.currentMonth;
+    if(delTeam){ const idx = parseInt(delTeam.dataset.delteam,10); state.months[mKey].teams.splice(idx,1); save(); renderTeamsEditor(mKey); }
+    if(rem){ const idx = parseInt(rem.dataset.rem,10); const name = rem.dataset.name; const team = state.months[mKey].teams[idx]; team.members = team.members.filter(x=> x!==name); save(); renderTeamsEditor(mKey); }
+    if(addBtn){ const idx = parseInt(addBtn.dataset.addbtn,10); const sel = document.querySelector(`select[data-addto="${idx}"]`); const name = sel.value; if(!name) return; for(const t of state.months[mKey].teams){ t.members = t.members.filter(x=> x!==name); } state.months[mKey].teams[idx].members.push(name); save(); renderTeamsEditor(mKey); }
+  });
+  document.getElementById('teamsEditor').addEventListener('input', (e)=>{ if(e.target.classList.contains('teamNameInput')){ const idx = parseInt(e.target.dataset.index,10); const mKey = document.getElementById('configMonth').value || state.currentMonth; state.months[mKey].teams[idx].name = e.target.value.trim() || `Team ${idx+1}`; save(); } });
+
+  // Data tab controls
+  document.getElementById('refreshDataBtn').addEventListener('click', renderDataTab);
+  document.getElementById('txnTable').addEventListener('change', (e)=>{
+    const mKey = document.getElementById('dataMonth').value || state.currentMonth; const txns = getTxns(mKey);
+    if(e.target.matches('[data-edit-mobile]')){ const id = e.target.dataset.editMobile; const x = txns.find(y=> y.id===id); if(!x) return; x.isMobile = e.target.value==='yes'; if(x.isMobile) x.reason = null; save(); renderDataTab(); toast('Updated'); }
+    if(e.target.matches('[data-edit-reason]')){ const id = e.target.dataset.editReason; const x = txns.find(y=> y.id===id); if(!x) return; x.reason = e.target.value; save(); renderDataTab(); toast('Updated'); }
+  });
+  document.getElementById('txnTable').addEventListener('click', (e)=>{ if(e.target.matches('[data-del-txn]')){ const id = e.target.dataset.delTxn; const mKey = document.getElementById('dataMonth').value || state.currentMonth; const txns = getTxns(mKey); const idx = txns.findIndex(x=> x.id===id); if(idx>-1){ txns.splice(idx,1); save(); renderDataTab(); toast('Deleted'); } } });
+
+  // Settings actions: add/delete + update name/pin
+  document.getElementById('addStaffBtn').addEventListener('click', ()=>{
+    const val = document.getElementById('newStaffInput').value.trim(); if(!val) return;
+    if(!state.staff.some(s=> s.name===val)) state.staff.push({ name: val, pin: '' });
+    document.getElementById('newStaffInput').value = ''; save(); renderSettings(); renderDashboard();
+  });
+  document.getElementById('staffAdmin').addEventListener('click', (e)=>{
+    if(e.target.matches('[data-delstaff]')){
+      const idx = parseInt(e.target.dataset.delstaff,10); const name = state.staff[idx].name; state.staff.splice(idx,1);
+      for(const mKey in state.months){ for(const t of state.months[mKey].teams){ t.members = t.members.filter(x=> x!==name); } }
+      save(); renderSettings(); renderTeamsEditor(document.getElementById('configMonth').value || state.currentMonth); renderDashboard();
+    }
+  });
+  document.getElementById('staffAdmin').addEventListener('input', (e)=>{
+    if(e.target.hasAttribute('data-staff-name')){ const i=parseInt(e.target.getAttribute('data-staff-name'),10); state.staff[i].name = e.target.value; save(); renderTeamsEditor(document.getElementById('configMonth').value || state.currentMonth); renderDashboard(); }
+    if(e.target.hasAttribute('data-staff-pin')){ const i=parseInt(e.target.getAttribute('data-staff-pin'),10); const val=e.target.value.trim(); if(val && !/^\d{4}$/.test(val)){ e.target.setCustomValidity('PIN must be 4 digits'); } else { e.target.setCustomValidity(''); state.staff[i].pin = val; save(); } }
+  });
+
+  document.getElementById('addReasonBtn').addEventListener('click', ()=>{ const val = document.getElementById('newReasonInput').value.trim(); if(!val) return; if(!state.reasons.includes(val)) state.reasons.push(val); document.getElementById('newReasonInput').value=''; save(); renderSettings(); renderDashboard(); renderDataTab(); });
+  document.getElementById('reasonsList').addEventListener('click', (e)=>{ if(e.target.matches('[data-delreason]')){ const r = e.target.dataset.delreason; state.reasons = state.reasons.filter(x=> x!==r); for(const mKey in state.months){ for(const x of state.months[mKey].transactions){ if(x.reason===r) x.reason=null; } } save(); renderSettings(); renderDashboard(); renderDataTab(); } });
+
+  // Export/Import/Clear
+  document.getElementById('exportBtn').addEventListener('click', ()=>{ const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `xstore-data-${Date.now()}.json`; a.click(); URL.revokeObjectURL(url); });
+  document.getElementById('importFile').addEventListener('change', (e)=>{ const file = e.target.files[0]; if(!file) return; const reader=new FileReader(); reader.onload = ()=>{ try { const data = JSON.parse(reader.result); if(!data || typeof data !== 'object') throw new Error('Invalid JSON'); state = data; // back-compat: ensure structure
+        if(Array.isArray(state.staff)) state.staff = state.staff.map(s => typeof s==='string' ? ({name:s,pin:''}) : s);
+        // *** CRITICAL FIX: normalize team members after import ***
+        normalizeMembersStructure(state);
+        ensureMonth(state.currentMonth); save(); renderDashboard(); renderConfig(); toast('Imported ✓'); } catch(err){ alert('Import failed: '+err.message); } }; reader.readAsText(file); });
+  document.getElementById('clearBtn').addEventListener('click', ()=>{ if(confirm('This will delete ALL saved data in this browser. Proceed?')){ localStorage.removeItem(STORAGE_KEY); state = load(); ensureMonth(state.currentMonth); save(); renderDashboard(); renderConfig(); } });
+
+  // Utility
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+  // Initial render
+  document.getElementById('configMonth').value = state.currentMonth; document.getElementById('dataMonth').value = state.currentMonth; renderDashboard();
+  </script>
+</body>
+</html>
